@@ -31,6 +31,7 @@ def load_subdetails():
 
 
 def generatingLabels(numdays_label_window, account_nums, subscription_details):
+
     context_date_first = datetime(2023, 7, 31).date()
     context_date_last = datetime(2023, 12, 1).date()
 
@@ -43,8 +44,8 @@ def generatingLabels(numdays_label_window, account_nums, subscription_details):
             file=mylabels,
         )
         while dateincrementer <= context_date_last:
-
-            label_window_start = dateincrementer + timedelta(days=1)  # inclusive
+            # Expiry should happen within -3 days from context_date to label_window_end
+            label_window_start = dateincrementer - timedelta(days=2)  # inclusive
             label_window_end = dateincrementer + timedelta(
                 days=numdays_label_window
             )  # inclusive
@@ -52,8 +53,8 @@ def generatingLabels(numdays_label_window, account_nums, subscription_details):
             for account_num in account_nums:
                 if account_num not in subscription_details:
                     print(
-                        f"{account_num},{dateincrementer},-3", file=mylabels
-                    )  # -3 means not even present in the subscription data source...
+                        f"{account_num},{dateincrementer},-4", file=mylabels
+                    )  # -4 means not even present in the subscription data source...
                     continue
 
                 # if he buys a plan in next 7 days and comparing that to the previous purchased plan
@@ -91,17 +92,17 @@ def generatingLabels(numdays_label_window, account_nums, subscription_details):
                                     )  # 0 means no downgrade more than 10%
                             else:
                                 print(
-                                    f"{account_num},{dateincrementer},0", file=mylabels
-                                )  # there can be no downgrade from 0
+                                    f"{account_num},{dateincrementer},-3", file=mylabels
+                                )  # thosew with label -3 i.e previous monthly plan = 0 are to be dropped later
                         else:
                             print(
-                                f"{account_num},{dateincrementer},-1", file=mylabels
-                            )  # -1 means no plan bought after
-
+                                f"{account_num},{dateincrementer},-2", file=mylabels
+                            )  # -2 means no plan bought after
+                            
                 if not planexpired_in_label_window:
                     print(
-                        f"{account_num},{dateincrementer},-2", file=mylabels
-                    )  # -2 means no expiry of the  plans of this particular accountnum in this label window
+                        f"{account_num},{dateincrementer},-1", file=mylabels
+                    )  # -1 means no expiry of the  plans of this particular accountnum in this label window
             dateincrementer += timedelta(days=1)
 
 
@@ -114,4 +115,3 @@ if __name__ == "__main__":
     generatingLabels(15, account_nums, subscription_details)
     print(datetime.now())
     generatingLabels(30, account_nums, subscription_details)
-    
